@@ -1,57 +1,75 @@
 const prompt = require('prompt-sync')({sigint: true});
 
-const hat = '^';
-const hole = 'O';
-const fieldCharacter = '░';
-const pathCharacter = '*';
-let position = [];
-
 class Field { 
     constructor(grid) {
-        this.position = [0, 0];
-        this.grid = grid;
-        
-        this.dimensions = [grid.length, grid[0].length]; // [rows, columns]
-        console.log(`You are the * in the top left corner of a ${this.dimensions[0]} x ${this.dimensions[1]} grid. `)
+        this.grid = grid;       
         this.clearScreen();
     }
-
     print() {
         for (let row of this.grid) {
             console.log(row.join(''));
         };
     }
 
-    getPosition() {
-        return this.position;
-        
-    }   
-    setRow(row) {
-        this.position[0] = row;
-        //console.log(`new row = ${this.position[0]}`)
-
-    }
-    setColumn(col) {
-        this.position[1] = col;
-        //console.log(`new column = ${this.position[1]}`)
-    }
-    getDimensions() {
-        return this.dimensions;
-    }
     clearScreen() {
         process.stdout.write("\u001b[2J\u001b[0;0H"); //clears the terminal screen
     }
+
+    static randomPositionInArray(rows, cols) {
+        
+        let outputArray = [];
+        outputArray[0] = Math.floor(Math.random() * rows);
+        outputArray[1] = Math.floor(Math.random() * cols);
+        //console.log(outputArray);
+        return outputArray;
+    }
 }
 
+/****************************************************************/
+// const myField = new Field([
+//     ['*', '░', 'O'],
+//     ['░', 'O', '░'],
+//     ['░', '^', '░'],
+//   ]);
 
-const myField = new Field([
-    ['*', '░', 'O'],
-    ['░', 'O', '░'],
-    ['░', '^', '░'],
-  ]);
+const hat = '^';
+const hole = 'O';
+const fieldCharacter = '░';
+const pathCharacter = '*';
+let position = [];
+let rowCount = 0;
+let colCount = 0;
+let generatedField = [];
 
-    
+//Ask player for dimensions and holes
+rowCount = prompt('How many rows do you want?');  
+colCount = prompt('How many columns do you want?');     
+//Create the field
+generatedField = new Array(parseInt(rowCount)).fill(null).map(() => new Array(parseInt(colCount)).fill(fieldCharacter));
+let hatPosition = Field.randomPositionInArray(parseInt(rowCount), parseInt(colCount));
+let hatRow = hatPosition[0];
+let hatCol = hatPosition[1];
+
+// Ensure that the hat is not at the starting position (0,0)
+while (hatRow === 0 && hatCol === 0) {
+    hatPosition = Field.randomPositionInArray(parseInt(rowCount), parseInt(colCount));
+    hatRow = hatPosition[0];
+    hatCol = hatPosition[1];
+}
+// Set the location of the hat
+generatedField[hatRow][hatCol] = hat;
+
+// Set the starting position to pathCharacter
+generatedField[0][0] = pathCharacter;
+
+// Store the starting position
+position = [0 ,0];
+
+console.log(generatedField);
+const myField = new Field (generatedField);
+
 myField.print();
+console.log(`You are the * in the top left corner of a ${colCount} x ${rowCount} grid. `)
 let endGame = false;
 
 while (!endGame) {
@@ -59,19 +77,16 @@ let userInput = prompt('Which way?');
 //'U'p, 'D'own, 'L'eft and 'R'ight only
     switch (userInput) {
         case 'u':
-            newRow = myField.getPosition()[0];
-            if(newRow) { // >0? then valid to move up/
-                myField.setRow(newRow -1);
+            if(position[0]) { // >0? then valid to move up/
+                position[0] -= 1;
             } else {
                 console.log("You can't move up from the top row. Game over.")
                 endGame = true;
             }                   
         break;
         case 'd':
-            newRow = myField.getPosition()[0];
-            dim = myField.getDimensions()[0];
-            if(newRow < dim - 1) { //< max nmber of rows? then move up
-                myField.setRow(newRow + 1);
+            if(position[0] < rowCount - 1) { //< max nmber of rows? then move up
+                position[0] += 1;
             } else {
                 console.log("You can't move down from the last row. Game over.");
                 endGame = true;
@@ -79,9 +94,8 @@ let userInput = prompt('Which way?');
             
         break;
         case 'l':
-            newCol = myField.getPosition()[1];
-            if(newCol) {
-                myField.setColumn(newCol - 1);
+            if(position[1]) {
+                position[1] -= 1;
             } else {
                 console.log("You can't move left from the first column. Game over.")
                 endGame = true;
@@ -89,12 +103,10 @@ let userInput = prompt('Which way?');
             
             break;
         case 'r':
-            newCol = myField.getPosition()[1];
-            dim = myField.getDimensions()[0];
-            if(newCol < dim - 1) {
-                myField.setColumn(newCol + 1)
+            if(position[1] < colCount - 1) { //< max nmber of rows? then move up
+                position[1] += 1;
             } else {
-                console.log("You can't move right from the last column. Game over.")
+                console.log("You can't move down from the last row. Game over.");
                 endGame = true;
             }
             
@@ -105,7 +117,7 @@ let userInput = prompt('Which way?');
     }
 
     if (!endGame){
-        switch (myField.grid[myField.getPosition()[0]][myField.getPosition()[1]]) { //winning condition
+        switch (generatedField[position[0]][position[1]]) { //winning condition
             case hat:
                 console.log("You won, congratulations!")
                 endGame = true;
@@ -116,8 +128,8 @@ let userInput = prompt('Which way?');
                 break;
             default: //continue by updating the screen
                 myField.clearScreen();
-                let currentPosition = myField.getPosition();
-                myField.grid[myField.getPosition()[0]][myField.getPosition()[1]] = pathCharacter; 
+
+                generatedField[position[0]][position[1]] = pathCharacter; 
                 myField.print();
                 break;
         }
