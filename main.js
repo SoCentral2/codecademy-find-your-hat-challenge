@@ -114,7 +114,7 @@ myField.print();
 
 /* This is responsible for outputting information to the console for the user to see during the game execution. */
 console.log(`Number of holes created: ${holesCreated}`);
-console.log(`You are the * in the top left corner of a ${colCount} x ${rowCount} grid. `)
+console.log(`You are the * in this ${colCount} x ${rowCount} grid. `)
 
 
 /* This is initializing a variable `endGame` with a boolean value of `false`. This
